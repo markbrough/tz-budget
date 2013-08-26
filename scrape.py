@@ -14,7 +14,10 @@ import copy
 
 def clean(text):
     nicetext = re.sub("\n", "", text).strip()
-    return nicetext
+    try:
+        return str(int(re.sub(",", "", nicetext)))
+    except ValueError:
+        return nicetext
 
 def parseCoverPage(pageno, layout):
     for no, row in enumerate(layout):
@@ -31,10 +34,46 @@ def parseCoverPage(pageno, layout):
                         'vote_name': vote_name}
     return default_pagedata
 
+header_names = ['amount', 'year', 'spending_type', 'spending_source', 'gl', 
+    'crd', 'donor', 'sub_vote_name', 'sub_vote_code', 'programme_name', 
+    'programme_code', 'page', 'vote_name', 'vote_code', 'source']
+
 col_names = ['2011_actual_local', '2011_actual_forex', '2012_approved_local',
     '2012_approved_forex', '2013_estimates_local', '2013_estimates_forex',  'total','gl', 
     'crd', 'donor', 'sub_vote_name', 'sub_vote_code', 'programme_name', 
     'programme_code', 'page', 'vote_name', 'vote_code', 'source']
+
+amount_cols = {'2011_actual_local': {
+                'year': '2011',
+                'spending_type': 'actual',
+                'spending_source': 'local',
+                }, 
+                '2011_actual_forex': {
+                'year': '2011',
+                'spending_type': 'actual',
+                'spending_source': 'forex',
+                }, 
+                '2012_approved_local': {
+                'year': '2012',
+                'spending_type': 'approved',
+                'spending_source': 'local',
+                },
+                '2012_approved_forex': {
+                'year': '2012',
+                'spending_type': 'approved',
+                'spending_source': 'forex',
+                }, 
+                '2013_estimates_local': {
+                'year': '2013',
+                'spending_type': 'estimates',
+                'spending_source': 'local',
+                }, 
+                '2013_estimates_forex': {
+                'year': '2013',
+                'spending_type': 'estimates',
+                'spending_source': 'forex',
+                }
+            }
 
 def parseDataPage(pageno, layout, csvfile, default_pagedata):
     out = []
@@ -199,15 +238,25 @@ def ParsePage(pageno, layout, csvfile, default_pagedata, source):
             return
         for row in out:
             row['source'] = source
-            csvfile.writerow(row)
+            amount_data = {}
+            for a, vals in amount_cols.items():
+                amount_data[a] = row[a]
+                del row[a]
+            del row['total']
+            for a, vals in amount_cols.items():
+                row['amount'] = amount_data[a]
+                row['year'] = vals['year']
+                row['spending_source'] = vals['spending_source']
+                row['spending_type'] = vals['spending_type']
+                csvfile.writerow(row)
 
     return default_pagedata
 
 
 def run():
     the_file = open('data.csv', 'w')
-    csvfile = unicodecsv.DictWriter(the_file, col_names)
-    csvfile.writerow(dict([(k, k) for k in col_names]))
+    csvfile = unicodecsv.DictWriter(the_file, header_names)
+    csvfile.writerow(dict([(k, k) for k in header_names]))
     sources = ['development']
 
     for source in sources:
