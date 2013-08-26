@@ -119,7 +119,7 @@ def parseDataPage(pageno, layout, csvfile, default_pagedata):
 
             # Get sub vote, programme data
             if str(data[0][0]) == str(119.0):
-                pagedata.update({'sub_vote_code': clean(data[0][1])})
+                pagedata.update({'sub_vote_code': pagedata['vote_code'] + "-" + clean(data[0][1])})
                 pagedata.update({'sub_vote_name': clean(data[1][1])})
             elif str(data[0][0]) == str(81.4):
                 pagedata.update({'programme_code': clean(data[0][1])})
