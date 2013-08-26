@@ -1,0 +1,7 @@
+*.pyc
+*.py~
+*.md~
+*.pdf
+*.txt~
+pyenv
+.~lock*
